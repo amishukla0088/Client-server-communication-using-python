@@ -1,26 +1,35 @@
-import socket                                         
-import time
+import time, socket, sys
 
-# create a socket to communicate the server and client
-serversocket = socket.socket(
-	        socket.AF_INET, socket.SOCK_STREAM) 
+print("\nWelcome to Chat Room\n")
+print("Initialising....\n")
+time.sleep(1)
 
-# get local machine name
-host = socket.gethostname()                           
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+host = socket.gethostname()
+ip = socket.gethostbyname(host)
+port = 1234
+s.bind((host, port))
+print(host, "(", ip, ")\n")
+name = input(str("Enter your name: "))
+           
+s.listen(1)
+print("\nWaiting for incoming connections...\n")
+conn, addr = s.accept()
+print("Received connection from ", addr[0], "(", addr[1], ")\n")
 
-port = 9999                                           
-
-# bind to the port server
-serversocket.bind((host, port))                                  
-
-# queue up to 5 requests
-serversocket.listen(5)                                           
+s_name = conn.recv(1024)
+s_name = s_name.decode()
+print(s_name, "has connected to the chat room\nEnter [e] to exit chat room\n")
+conn.send(name.encode())
 
 while True:
-    # establish a connection
-    clientsocket,addr = serversocket.accept()      
-
-    print("Got a connection from %s" % str(addr))
-    currentTime = time.ctime(time.time()) + "\r\n"
-    clientsocket.send(currentTime.encode('ascii'))
-    clientsocket.close()
+    message = input(str("Me : "))
+    if message == "[e]":
+        message = "Left chat room!"
+        conn.send(message.encode())
+        print("\n")
+        break
+    conn.send(message.encode())
+    message = conn.recv(1024)
+    message = message.decode()
+    print(s_name, ":", message)
